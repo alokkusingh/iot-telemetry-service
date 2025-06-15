@@ -2,7 +2,7 @@ application:
   id: home-telemetry-svc
 spring:
   application:
-    name: Telemetry Service
+    name: Home Telemetry Service
   jpa:
     properties:
       hibernate:
@@ -38,22 +38,42 @@ management:
       enabled: true
     readinessState:
       enabled: true
+
 iot:
   mqtt:
-    auto-reconnect: true
-    clean-state: false
-    client-id: alok
-    connection-retry: 5
-    connection-timeout: 120
-    host: 192.168.1.201
-    keep-alive: 120
-    port: 31883
-    publish-qos: 0
-    publish-topic: home/stack/stmt-res
-    status-topic: home/stack/status
-    subscribe-qos: 0
-    subscribe-topic: home/stack/stmt-req
-  secure:
+    broker:
+      host: 192.168.1.201
+      port: 31883
+      auto-reconnect: true
+      clean-state: false
+      #client-id: alok
+      connection-retry: 5
+      connection-timeout: 120
+      keep-alive: 120
+      publish-qos: 0
+      subscribe-qos: 0
+    devices:
+      esp32-general-purpose-1:
+        name: ESP32 General Purpose Microcontroller 1
+        type: esp32
+        location: "JGTE Living Room"
+        status-topic: home/alok/status/esp32-general-purpose-1
+        command-topic: home/alok/command/esp32-general-purpose-1
+        sensors:
+          DHT11-temp:
+            type: temperature
+            topic: home/alok/telemetry/temperature/esp32-general-purpose-1
+          DHT11-humid:
+            type: humidity
+            topic: home/alok/humidity/temperature/esp32-general-purpose-1
+      esp32-cam-1:
+        name: ESP32 Camera Microcontroller 1
+        type: esp32
+        location: "JGTE Main Door"
+        status-topic: home/alok/status/esp32-cam-1
+        command-topic: home/alok/command/esp32-cam-1
+        sensors:
+  security:
     keystore-file: keystore.jks
     keystore-password: ${KSPASSWORD}
     keystore-type: JKS
