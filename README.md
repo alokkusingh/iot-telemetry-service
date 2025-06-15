@@ -6,4 +6,4 @@ Home Stack Telemetry Service, which is a microservice that collects data from va
     - `home/alok/telemetry/temperature`
     - `home/alok/telemetry/humidity`
 - Publish Topics
-    - `home/alok/<<deviceId>>/command`
+    - `home/alok/device/<<deviceId>>/command`
