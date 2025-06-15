@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.alok.iot</groupId>
-	<artifactId>telemetry-service</artifactId>
+	<artifactId>iot-telemetry-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>Telemetry Service</name>
 	<description>IoT Telemetry Service</description>
