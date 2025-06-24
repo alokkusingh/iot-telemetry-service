@@ -67,11 +67,11 @@ iot:
         status-topic: home/alok/status/esp32-general-purpose-1
         command-topic: home/alok/command/esp32-general-purpose-1
         sensors:
-          DHT11-temp:
-            type: temperature
+          temperature:
+            type: DHT11
             topic: home/alok/telemetry/temperature/esp32-general-purpose-1
-          DHT11-humid:
-            type: humidity
+          humidity:
+            type: DHT11
             topic: home/alok/telemetry/humidity/esp32-general-purpose-1
       esp32-cam-1:
         name: ESP32 Camera Microcontroller 1

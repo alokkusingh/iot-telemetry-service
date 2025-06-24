@@ -1,10 +1,8 @@
 package com.alok.iot.telemetry.config;
 
 import com.alok.iot.telemetry.properties.IotProperties;
-import org.eclipse.paho.client.mqttv3.IMqttClient;
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttException;
+import lombok.extern.slf4j.Slf4j;
+import org.eclipse.paho.client.mqttv3.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,13 +12,20 @@ import java.security.*;
 import java.security.cert.CertificateFactory;
 import java.util.Optional;
 
+@Slf4j
 @Configuration
 public class MqttConfig {
 
     private final IotProperties iotProperties;
+    private final IMqttMessageListener statusMessageListener;
+    private final IMqttMessageListener humidityMessageListener;
+    private final IMqttMessageListener temperatureMessageListener;
 
-    public MqttConfig(IotProperties iotProperties) {
+    public MqttConfig(IotProperties iotProperties, IMqttMessageListener statusMessageListener, IMqttMessageListener humidityMessageListener, IMqttMessageListener temperatureMessageListener) {
         this.iotProperties = iotProperties;
+        this.statusMessageListener = statusMessageListener;
+        this.humidityMessageListener = humidityMessageListener;
+        this.temperatureMessageListener = temperatureMessageListener;
     }
 
     /**
@@ -39,13 +44,7 @@ public class MqttConfig {
         MqttConnectOptions options = new MqttConnectOptions();
         try {
             options.setSocketFactory(createSSLSocketFactory());
-        } catch (KeyStoreException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        } catch (KeyManagementException e) {
-            throw new RuntimeException(e);
-        } catch (UnrecoverableKeyException e) {
+        } catch (KeyStoreException | NoSuchAlgorithmException | KeyManagementException | UnrecoverableKeyException e) {
             throw new RuntimeException(e);
         }
         options.setServerURIs(new String[]{brokerUrl});
@@ -54,9 +53,49 @@ public class MqttConfig {
         options.setConnectionTimeout(10);
 
         IMqttClient client = new MqttClient(brokerUrl, clientId);
+        log.info("Connecting to MQTT broker at: {}", brokerUrl);
         client.connect(options);
+        log.info("Connected to MQTT broker with client ID: {}", clientId);
+        client.setCallback(new MqttCallback() {
+            @Override
+            public void connectionLost(Throwable cause) {
+                log.error("Connection lost: {}", cause.getMessage());
+            }
+
+            @Override
+            public void messageArrived(String topic, MqttMessage message) throws Exception {
+                log.info("Message arrived on topic {}: {}", topic, new String(message.getPayload()));
+            }
+
+            @Override
+            public void deliveryComplete(IMqttDeliveryToken token) {
+                log.info("Delivery complete for token: {}", token.getMessageId());
+            }
+        });
+        topicSubscribe(client);
 
         return client;
+    }
+
+    private void topicSubscribe(IMqttClient mqttClient) throws MqttException {
+        iotProperties.getMqtt().getDevices().forEach((deviceId, device) -> {
+            try {
+                if (device.getStatusTopic() != null) {
+                    log.info("Subscribing to status topic: {}", device.getStatusTopic());
+                    mqttClient.subscribe(device.getStatusTopic(), statusMessageListener);
+                }
+                if (device.getSensors() != null && device.getSensors().get("humidity") != null) {
+                    log.info("Subscribing to humidity topic: {}", device.getSensors().get("humidity").getTopic());
+                    mqttClient.subscribe(device.getSensors().get("humidity").getTopic(), humidityMessageListener);
+                }
+                if (device.getSensors() != null && device.getSensors().get("temperature") != null) {
+                    log.info("Subscribing to temperature topic: {}", device.getSensors().get("temperature").getTopic());
+                    mqttClient.subscribe(device.getSensors().get("temperature").getTopic(), temperatureMessageListener);
+                }
+            } catch (MqttException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     /**
