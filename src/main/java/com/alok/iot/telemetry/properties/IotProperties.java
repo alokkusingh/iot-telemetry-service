@@ -7,10 +7,10 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.Map;
 
+@Setter
+@Getter
 @Configuration
 @ConfigurationProperties(prefix = "iot")
-@Getter
-@Setter
 public class IotProperties {
     private Mqtt mqtt;
 
@@ -20,18 +20,30 @@ public class IotProperties {
         private Broker broker;
         private Map<String, Device> devices;
 
-        @Getter
         @Setter
+        @Getter
         public static class Broker {
             private String host;
             private int port;
             private boolean autoReconnect;
             private boolean cleanState;
+            private String clientId;
             private int connectionRetry;
             private int connectionTimeout;
             private int keepAlive;
             private int publishQos;
             private int subscribeQos;
+            private Security security;
+
+            @Setter
+            @Getter
+            public static class Security {
+                private String caCertPath;
+                private String clientKeystoreType;
+                private String clientKeystorePath;
+                private String clientKeystorePassword;
+
+            }
         }
 
         @Setter
@@ -43,14 +55,15 @@ public class IotProperties {
             private String statusTopic;
             private String commandTopic;
             private Map<String, Sensor> sensors;
+
         }
 
         @Setter
         @Getter
         public static class Sensor {
-            // getters and setters
             private String type;
             private String topic;
+
         }
     }
 }

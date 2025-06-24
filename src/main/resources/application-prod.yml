@@ -37,8 +37,8 @@ spring:
 iot:
   mqtt:
     broker:
-      host: 192.168.1.201
-      port: 31883
+      host: mosquitto-service
+      port: 1883
       security:
-        ca-cert-path: /Users/aloksingh/git/iot-home-stack/secret/mqtt-signer-ca.crt
-        client-keystore-path: /Users/aloksingh/git/iot-home-stack/secret/mqtt.client.home-telemetry-svc.jks
+        ca-cert-path: /etc/ca/mqtt-signer-ca.crt
+        client-keystore-path: /etc/jks/keystore.jks
