@@ -6,18 +6,58 @@ Home Stack Telemetry Service, which is a microservice that collects data from va
 - `home/alok/status/<<deviceId>>`
 - `home/alok/telemetry/temperature/<<deviceId>>`
 - `home/alok/telemetry/humidity/<<deviceId>>`
+## MQTT Payloads
+### Temperature Payload
+```json
+{
+  "deviceId": "esp32-general-purpose-1",
+  "temperature": 25.5,
+  "unit": "Celsius"
+}
+```
+### Humidity Payload
+```json
+{
+  "deviceId": "esp32-general-purpose-1",
+  "humidity": 60,
+  "unit": "%"
+}
+```
+### Device Status Payload
+#### Online Status
+```json
+{
+  "deviceId": "esp32-general-purpose-1",
+  "status": "online",
+  "lastSeen": "2023-10-01T12:00:00Z",
+  "ipAddress": "192.168.1.6"
+}
+```
+#### Offline Status
+```json
+{
+  "deviceId": "esp32-general-purpose-1",
+  "status": "offline",
+  "lastSeen": "2023-10-01T12:00:00Z"
+}
+```
+### Command Payload
+```json
+{
+  "deviceId": "esp32-general-purpose-1",
+  "command": "turn_on_fan"
+}
+```
 ### Publish Topics
 - `home/alok/command/<<deviceId>>`
 
-## Build
-### Set JAVA_HOME (in case mvn run through terminal)
-```shell
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home
-export PATH=$JAVA_HOME/bin:$PATH
-```
-### Build Application image
+1. Maven Package
    ```shell
-   docker build --progress=plain -f Dockerfile.native -t alokkusingh/iot-telemetry-service:latest -t alokkusingh/iot-telemetry-service:1.0.0 .
+   mvn clean package -DskipTests
+   ```
+2. Docker Build, Push & Run
+   ```shell
+   docker build -t alokkusingh/iot-telemetry-service:latest -t alokkusingh/iot-telemetry-service:1.0.0 --build-arg JAR_FILE=target/iot-telemetry-service-1.0.0.jar .
    ```
    ```shell
    docker push alokkusingh/iot-telemetry-service:latest

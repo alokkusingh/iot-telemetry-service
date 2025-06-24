@@ -8,11 +8,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 
 @ConfigurationPropertiesScan({
 		"com.alok.iot.telemetry.properties",
-		"com.alok.iot.telemetry.config",
 		"com.alok.home.commons.security.properties"
 })
 @SpringBootApplication(scanBasePackages = {
 		"com.alok.iot.telemetry",
+		"com.alok.iot.telemetry.config",
 		"com.alok.home.commons.exception",
 		"com.alok.home.commons.security",
 		"com.alok.home.commons.entity",
