@@ -10,7 +10,8 @@ Home Stack Telemetry Service, which is a microservice that collects data from va
 ### Temperature Payload
 ```json
 {
-  "deviceId": "esp32-general-purpose-1",
+  "deviceId": "esp32-general-purpose-1", 
+   "epochTime": 1696156800,
   "temperature": 25.5,
   "unit": "Celsius"
 }
@@ -19,6 +20,7 @@ Home Stack Telemetry Service, which is a microservice that collects data from va
 ```json
 {
   "deviceId": "esp32-general-purpose-1",
+   "epochTime": 1696156800,
   "humidity": 60,
   "unit": "%"
 }
@@ -29,7 +31,7 @@ Home Stack Telemetry Service, which is a microservice that collects data from va
 {
   "deviceId": "esp32-general-purpose-1",
   "status": "online",
-  "lastSeen": "2023-10-01T12:00:00Z",
+   "epochTime": 1696156800,
   "ipAddress": "192.168.1.6"
 }
 ```
@@ -38,7 +40,7 @@ Home Stack Telemetry Service, which is a microservice that collects data from va
 {
   "deviceId": "esp32-general-purpose-1",
   "status": "offline",
-  "lastSeen": "2023-10-01T12:00:00Z"
+   "epochTime": 1696156800
 }
 ```
 ### Command Payload
