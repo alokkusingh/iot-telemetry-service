@@ -1,5 +1,7 @@
 package com.alok.iot.telemetry.config;
 
+import com.alok.iot.telemetry.dto.DeviceStatusPayload;
+import com.alok.iot.telemetry.dto.Payload;
 import com.alok.iot.telemetry.properties.IotProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.paho.client.mqttv3.*;
@@ -8,8 +10,12 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.net.ssl.*;
 import java.io.FileInputStream;
+import java.net.Inet4Address;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.cert.CertificateFactory;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Slf4j
@@ -35,28 +41,31 @@ public class MqttConfig {
      * @throws MqttException if there is an error connecting to the broker
      */
     @Bean
-    public IMqttClient mqttClient() throws MqttException {
-        String clientId = iotProperties.getMqtt().getBroker().getClientId();
+    public IMqttClient mqttClient() throws MqttException, UnknownHostException {
+        var brokerProperties = iotProperties.getMqtt().getBroker();
+        String clientId = brokerProperties.getClientId();
         String brokerUrl = String.format("ssl://%s:%d",
-                iotProperties.getMqtt().getBroker().getHost(),
-                iotProperties.getMqtt().getBroker().getPort());
-
-        MqttConnectOptions options = new MqttConnectOptions();
-        try {
-            options.setSocketFactory(createSSLSocketFactory());
-        } catch (KeyStoreException | NoSuchAlgorithmException | KeyManagementException | UnrecoverableKeyException e) {
-            throw new RuntimeException(e);
-        }
-        options.setServerURIs(new String[]{brokerUrl});
-        options.setAutomaticReconnect(true);
-        options.setCleanSession(true);
-        options.setConnectionTimeout(10);
+                brokerProperties.getHost(),
+                brokerProperties.getPort());
 
         IMqttClient client = new MqttClient(brokerUrl, clientId);
         log.info("Connecting to MQTT broker at: {}", brokerUrl);
-        client.connect(options);
+
+        client.connect(createMqttConnectOptions(brokerProperties));
         log.info("Connected to MQTT broker with client ID: {}", clientId);
-        client.setCallback(new MqttCallback() {
+
+        client.setCallback(new MqttCallbackExtended() {
+            @Override
+            public void connectComplete(boolean b, String s) {
+                log.info("Connection complete: {}-{}", b, s);
+                try {
+                    topicSubscribe(client);
+                } catch (MqttException e) {
+                    log.error("Failed to subscribe to topics after reconnection: {}", e.getMessage());
+                    throw new RuntimeException(e);
+                }
+            }
+
             @Override
             public void connectionLost(Throwable cause) {
                 log.error("Connection lost: {}", cause.getMessage());
@@ -73,8 +82,40 @@ public class MqttConfig {
             }
         });
         topicSubscribe(client);
+        publish(client, brokerProperties.getStatusTopic(), new DeviceStatusPayload(brokerProperties.getClientId(), System.currentTimeMillis(), "online", Inet4Address.getLocalHost().getHostAddress()));
 
         return client;
+    }
+
+    public void publish(final IMqttClient mqttClient, final String topic, final Payload payload) throws MqttException {
+        MqttMessage message = new MqttMessage();
+        message.setQos(1);
+        // AWS IoT Core doesn't support retained=true
+        message.setRetained(false);
+        message.setPayload(payload.toString().getBytes(StandardCharsets.UTF_8));
+
+        mqttClient.publish( topic, message );
+    }
+
+    private MqttConnectOptions createMqttConnectOptions(IotProperties.Mqtt.Broker brokerProperties) throws UnknownHostException {
+        MqttConnectOptions options = new MqttConnectOptions();
+
+        options.setAutomaticReconnect(brokerProperties.isAutoReconnect());
+        options.setCleanSession(brokerProperties.isCleanState());
+        options.setConnectionTimeout(brokerProperties.getConnectionTimeout());
+        options.setKeepAliveInterval(brokerProperties.getKeepAlive());
+        options.setWill(brokerProperties.getStatusTopic(),
+                new DeviceStatusPayload(brokerProperties.getClientId(),
+                        System.currentTimeMillis(), "offline", Inet4Address.getLocalHost().getHostAddress())
+        .toString().getBytes(StandardCharsets.UTF_8), 1, false);
+
+        try {
+            options.setSocketFactory(createSSLSocketFactory());
+        } catch (KeyStoreException | NoSuchAlgorithmException | KeyManagementException | UnrecoverableKeyException e) {
+            throw new RuntimeException(e);
+        }
+
+        return options;
     }
 
     private void topicSubscribe(IMqttClient mqttClient) throws MqttException {

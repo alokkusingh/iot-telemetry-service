@@ -31,6 +31,7 @@ public class IotProperties {
             private int connectionRetry;
             private int connectionTimeout;
             private int keepAlive;
+            private String statusTopic;
             private int publishQos;
             private int subscribeQos;
             private Security security;

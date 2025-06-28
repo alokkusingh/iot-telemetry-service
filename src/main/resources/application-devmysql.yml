@@ -39,6 +39,8 @@ iot:
     broker:
       host: 192.168.1.201
       port: 31883
+      client-id: home-telemetry-test-svc
+      status-topic: home/alok/status/home-telemetry-test-svc
       security:
         ca-cert-path: /Users/aloksingh/git/iot-home-stack/secret/mqtt-signer-ca.crt
-        client-keystore-path: /Users/aloksingh/git/iot-home-stack/secret/mqtt.client.home-telemetry-svc.jks
+        client-keystore-path: /Users/aloksingh/git/iot-home-stack/secret/mqtt.client.home-telemetry-test-svc.jks

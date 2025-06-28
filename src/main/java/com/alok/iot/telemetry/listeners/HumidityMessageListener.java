@@ -19,7 +19,13 @@ public class HumidityMessageListener implements IMqttMessageListener {
         log.debug("Message arrived on topic: {}", topic);
         log.debug("Message content: {}", new String(mqttMessage.getPayload()));
 
-        var payload = objectMapper.readValue(mqttMessage.getPayload(), HumidityPayload.class);
+        HumidityPayload payload;
+        try {
+            payload = objectMapper.readValue(mqttMessage.getPayload(), HumidityPayload.class);
+        } catch (Exception e) {
+            log.error("Failed to parse MQTT message payload: {}", e.getMessage());
+            return; // Exit if parsing fails
+        }
 
         // example topic: "home/alok/telemetry/temperature/esp32-general-purpose-1"
         String deviceIdFromTopic = topic.split("/")[4];

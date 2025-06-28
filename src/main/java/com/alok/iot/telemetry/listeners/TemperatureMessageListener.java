@@ -1,6 +1,7 @@
 package com.alok.iot.telemetry.listeners;
 
 import com.alok.iot.telemetry.dto.HumidityPayload;
+import com.alok.iot.telemetry.dto.TemperaturePayload;
 import com.alok.iot.telemetry.utils.PayloadUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +20,13 @@ public class TemperatureMessageListener implements IMqttMessageListener {
         log.debug("Message arrived on topic: {}", topic);
         log.debug("Message content: {}", new String(mqttMessage.getPayload()));
 
-        var payload = objectMapper.readValue(mqttMessage.getPayload(), HumidityPayload.class);
+        TemperaturePayload payload;
+        try {
+            payload = objectMapper.readValue(mqttMessage.getPayload(), TemperaturePayload.class);
+        } catch (Exception e) {
+            log.error("Failed to parse MQTT message payload: {}", e.getMessage());
+            return; // Exit if parsing fails
+        }
 
         // example topic: "home/alok/telemetry/temperature/esp32-general-purpose-1"
         String deviceIdFromTopic = topic.split("/")[4];

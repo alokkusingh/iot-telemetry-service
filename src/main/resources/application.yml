@@ -52,6 +52,7 @@ iot:
       connection-retry: 5
       connection-timeout: 120
       keep-alive: 120
+      status-topic: home/alok/status/home-telemetry-svc
       publish-qos: 0
       subscribe-qos: 0
       security:
